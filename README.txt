@@ -9,5 +9,7 @@
 
 # diffgame
 Simple samegame clone for learning purposes
+Look here for installation guidance
+Look to the wiki for everything else
 
 
