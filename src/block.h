@@ -2,8 +2,8 @@
 #define BLOCK_H
 #include "SDL2/SDL.h"
 
-#define BLOCK_SIZE_WIDTH 15
-#define BLOCK_SIZE_HEIGHT 15
+#define BLOCK_SIZE_WIDTH 18
+#define BLOCK_SIZE_HEIGHT 18
 
 struct _BlockTextures {
 	SDL_Texture *plainBlock;
