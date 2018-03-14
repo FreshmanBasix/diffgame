@@ -1,5 +1,6 @@
 #ifndef BLOCK_H
 #define BLOCK_H
+#include <stdbool.h>
 #include "SDL2/SDL.h"
 
 #define BLOCK_SIZE_WIDTH 18
@@ -46,6 +47,7 @@ typedef struct _Block {
 	SDL_Rect block;
 	BlockColor color;
 	SDL_Texture *texture;
+	bool selected;
 } Block;
 
 Block* createBlock(int x, int y, BlockColor color, SDL_Texture* texture);

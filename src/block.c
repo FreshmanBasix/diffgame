@@ -34,8 +34,16 @@ void loadBlockTextures(void) {
 }
 
 void drawBlock(SDL_Renderer *rend, Block *block) {
+	BlockColor color;
 	uint8_t color_r, color_g, color_b;
-	switch(block->color) {
+
+	if (block->selected)
+		/* TODO get proper selected colorization */
+		color = WHITE;
+	else
+		color = block->color;
+
+	switch(color) {
 		case RED:
 			color_r = RED_R;
 			color_g = RED_G;

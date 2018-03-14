@@ -30,35 +30,84 @@ void populateBoard(Board *brd, int lvl) {
 	int blockx, blocky;
 	int split;
 	BlockColor color;
-	for (int i = 0; i < BOARD_COLUMNS * BOARD_ROWS; ++i) {
-		Block *tmpBlock = (Block*) malloc(sizeof(Block));
+	for (int i = 0; i < BOARD_ROWS; ++i) {
+		for (int j = 0; j < BOARD_COLUMNS; ++j) {
+			Block *tmpBlock = (Block*) malloc(sizeof(Block));
 
-		/* TODO Get random color here */
-		split = rand();
-		if (split < RED_SPLIT)
-			color = RED;
-		else if (split < GREEN_SPLIT)
-			color = GREEN;
-		else if (split < BLUE_SPLIT)
-			color = BLUE;
-		else if (split < YELLOW_SPLIT)
-			color = YELLOW;
-		else if (split < ORANGE_SPLIT)
-			color = ORANGE;
-		else
-			color = WHITE;
+			split = rand() % lvlBreak;		// level specific block colors
+			if (split < RED_SPLIT)
+				color = RED;
+			else if (split < GREEN_SPLIT)
+				color = GREEN;
+			else if (split < BLUE_SPLIT)
+				color = BLUE;
+			else if (split < YELLOW_SPLIT)
+				color = YELLOW;
+			else if (split < ORANGE_SPLIT)
+				color = ORANGE;
+			else
+				color = WHITE; // error color
 
-		blockx = (i % BOARD_ROWS) * BLOCK_SIZE_WIDTH;
-		blocky = (i / BOARD_ROWS) * BLOCK_SIZE_HEIGHT;
-		tmpBlock = createBlock(blockx, blocky, color, gBlockTextures.plainBlock);
-		brd->blocks[i] = tmpBlock;
+			blockx = i * BLOCK_SIZE_HEIGHT;
+			blocky = j * BLOCK_SIZE_WIDTH;
+			tmpBlock = createBlock(blockx, blocky, color, gBlockTextures.plainBlock);
+			brd->blocks[i][j] = tmpBlock;
+		}
 	}
 }
 
-void drawBoard(SDL_Renderer **rend, Board *brd) {
+void drawBoard(SDL_Renderer **rend, Board *board) {
 	Block *tmpBlock;
-	for (int i = 0; i < BOARD_COLUMNS * BOARD_ROWS; ++i) {
-		tmpBlock = brd->blocks[i];
-		drawBlock(*rend, tmpBlock);
+	for (int i = 0; i < BOARD_ROWS; ++i) {
+		for (int j = 0; j < BOARD_COLUMNS; ++j) {
+			tmpBlock = board->blocks[i][j];
+			/* TODO Should this really be set here? */
+			tmpBlock->selected = board->blockMap[i][j];
+			drawBlock(*rend, tmpBlock);
+		}
 	}
+}
+
+/* Recursively get all blocks depth-first that match color */
+static void selectBlock(Board *board, int x, int y, BlockColor color)
+{
+	printf("Selecting block [%d][%d]\n", y, x);
+	printf("current color: %d, target color: %d\n", board->blocks[x][y]->color, color);
+	
+	/* Return if wrong color || already marked || illegal coordinates */
+	if (board->blocks[y][x]->color != color
+		|| board->blockMap[y][x]
+		|| x < 0
+		|| x >= BOARD_COLUMNS
+		|| y < 0
+		|| y >= BOARD_ROWS
+	) return;
+	else board->blockMap[y][x] = true;
+
+	/* Search left, up, right, down */
+
+	if (x > 0) // check if at left border
+		selectBlock(board, (x - 1), y, color);
+	if (x < BOARD_COLUMNS - 1) // check if at right border
+		selectBlock(board, (x + 1), y, color);
+	if (y > 0) // check if at top border
+		selectBlock(board, x, (y - 1), color);
+	if (y < BOARD_ROWS - 1) // check if at bottom border
+		selectBlock(board, x, (y + 1), color);
+}
+
+/* Recursively selects all connected blocks based on one block (index) */
+void selectBlocks(Board *board, int x, int y)
+{
+	/* "clear" blockMap, set all blocks as false */
+	for (int i = 0; i < BOARD_ROWS; ++i) {
+		for (int j = 0; j < BOARD_COLUMNS; ++j) {
+			board->blockMap[i][j] = false;
+		}
+	}
+
+	/* Get color to match blocks with */
+	BlockColor color = board->blocks[y][x]->color;
+
+	selectBlock(board, x, y, color);
 }
