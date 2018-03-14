@@ -4,8 +4,8 @@
 #include "block.h"
 #include "SDL2/SDL.h"
 
-#define BOARD_ROWS		30
-#define BOARD_COLUMNS	30
+#define BOARD_ROWS		15
+#define BOARD_COLUMNS	15
 
 #define RED_SPLIT 		RAND_MAX/5
 #define GREEN_SPLIT		(RAND_MAX/5)*2
