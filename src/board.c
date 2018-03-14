@@ -83,8 +83,8 @@ void populateBoard(Board *brd, int lvl)
 			else
 				color = WHITE; // error color
 
-			blockx = i * BLOCK_SIZE_HEIGHT;
-			blocky = j * BLOCK_SIZE_WIDTH;
+			blockx = j * BLOCK_SIZE_WIDTH;
+			blocky = i * BLOCK_SIZE_HEIGHT;
 			tmpBlock = createBlock(blockx, blocky, color, gBlockTextures.plainBlock);
 			brd->blocks[i][j] = tmpBlock;
 		}
@@ -106,9 +106,6 @@ void drawBoard(SDL_Renderer **rend, Board *board) {
 /* Recursively get all blocks depth-first that match color */
 static void selectBlock(Board *board, int x, int y, BlockColor color)
 {
-	printf("Selecting block [%d][%d]\n", y, x);
-	printf("current color: %d, target color: %d\n", board->blocks[x][y]->color, color);
-	
 	/* Return if wrong color || already marked || illegal coordinates */
 	if (board->blocks[y][x]->color != color
 		|| board->blockMap[y][x]
