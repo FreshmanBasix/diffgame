@@ -1,27 +1,62 @@
+#include <time.h>
+#include <stdbool.h>
 #include "board.h"
 #include "block.h"
 
 Board* createBoard(void)
 {
+	/* Allocate memory for board and initialize blocks array
+	 * to only contain null pointers (destroyBoard will probably crash if non-null) */
 	Board *newBoard = (Board*) malloc(sizeof(Board));
+	for (int i = 0; i < BOARD_ROWS; ++i) {
+		for (int j = 0; j < BOARD_COLUMNS; ++j) {
+			newBoard->blocks[i][j] = NULL;
+			newBoard->blockMap[i][j] = false;
+		}
+	}
+
+	/* Set a random seed for the board used when generating random stuff,
+	 * based on unix time in seconds */
+	srand(time(NULL));
+	newBoard->seed = rand();
+
 	return newBoard;
 }
 
 void destroyBoard(Board *brd)
 {
-	/* TODO IMPORTANT Free all block pointers */
+	/* Free all blocks */
+	for (int i = 0; i < BOARD_ROWS; ++i) {
+		for (int j = 0; j < BOARD_COLUMNS; ++j) {
+			free(brd->blocks[i][j]);
+		}
+	}
+	/* Free blocks array (not sure if needed) */
 	free(brd->blocks);
+	/* Free board */
 	free(brd);
 }
 
 /* Fill the block array in board with random blocks based on level */
-void populateBoard(Board *brd, int lvl) {
+void populateBoard(Board *brd, int lvl)
+{
+	int lvlBreak;
 
-	/* TODO */
-	/* Get random content based on level
-	 * (i.e. How many different colors of blocks, special blocks etc.) */
+	srand(brd->seed); // get random seed from board
+
+	/* lvlBreak should indicate what blocks are going to be included in the
+	 * current level, by capping rand-values to certain color caps */
 	switch (lvl) {
 		case 1:
+			lvlBreak = BLUE_SPLIT;		// Level 1 are only red, green and blue
+			break;
+		case 2:
+			lvlBreak = YELLOW_SPLIT;	// Level 2 includes yellow blocks
+			break;
+		case 3:
+			lvlBreak = ORANGE_SPLIT;	// Level 3 includes orange blocks TODO special blocks
+			break;
+		case 4:
 			break;
 		default:
 			break;
