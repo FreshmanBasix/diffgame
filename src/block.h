@@ -6,6 +6,9 @@
 #define BLOCK_SIZE_WIDTH 30
 #define BLOCK_SIZE_HEIGHT 30
 
+#define BLOCK_ACCELERATION 2
+#define BLOCK_MAX_VELOCITY 20
+
 struct _BlockTextures {
 	SDL_Texture *plainBlock;
 };
@@ -48,10 +51,16 @@ typedef struct _Block {
 	BlockColor color;
 	SDL_Texture *texture;
 	bool selected;
+	bool updating;
+	int velocity;
+	int targetX;
+	int targetY;
 } Block;
 
 Block* createBlock(int x, int y, BlockColor color, SDL_Texture* texture);
 void destroyBlock(Block *block);
 void loadBlockTextures(void);
 void drawBlock(SDL_Renderer *rend, Block *block);
+void updateBlock(Block *block);
+
 #endif

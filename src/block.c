@@ -17,6 +17,11 @@ Block* createBlock(int x, int y, BlockColor color, SDL_Texture* texture)
 	newBlock->block.x = x;
 	newBlock->block.y = y;
 
+	newBlock->updating = false;
+	newBlock->velocity = 0;
+	newBlock->targetX = x;
+	newBlock->targetY = y;
+
 	return newBlock;
 }
 
@@ -79,4 +84,20 @@ void drawBlock(SDL_Renderer *rend, Block *block) {
 
 	SDL_SetTextureColorMod(block->texture, color_r, color_g, color_b);
 	SDL_RenderCopy(rend, block->texture, NULL, &block->block);
+}
+
+void updateBlock(Block *block)
+{
+	block->velocity += BLOCK_ACCELERATION;
+	if (block->velocity > BLOCK_MAX_VELOCITY)
+		block->velocity = BLOCK_MAX_VELOCITY;
+	
+	/* Check if update complete */
+	if (block->block.y + block->velocity >= block->targetY) {
+		block->block.y = block->targetY;
+		block->velocity = 0;
+		block->updating = false;
+	} else {
+		block->block.y += block->velocity;
+	}
 }
