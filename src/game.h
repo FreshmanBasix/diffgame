@@ -9,6 +9,7 @@ struct _Game {
 	SDL_Renderer *mainRenderer;
 	struct {
 		bool quit;
+		bool gameOver;
 		Board *currentBoard;
 	} state;
 };
@@ -16,5 +17,10 @@ struct _Game {
 /* Global game struct */
 extern struct _Game gGame;
 
+/* Initializes game struct */
 void initGame(struct _Game *game);
+
+/* Updates levels, items etc. */
+void updateGameStatus(struct _Game *game);
+
 #endif

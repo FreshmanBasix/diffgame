@@ -11,11 +11,13 @@
 
 struct _BlockTextures {
 	SDL_Texture *plainBlock;
+	SDL_Texture *frozenBlock;
 };
 
 extern struct _BlockTextures gBlockTextures;
 
 typedef enum {
+	FROZEN,
 	SPECIAL,
 	WHITE,
 	RED,
@@ -46,6 +48,10 @@ typedef enum {
 #define ORANGE_G 0x90
 #define ORANGE_B 0x2C
 
+#define FROZEN_R 0x77
+#define FROZEN_G 0x77
+#define FROZEN_B 0x77
+
 typedef struct _Block {
 	SDL_Rect block;
 	BlockColor color;
@@ -62,5 +68,6 @@ void destroyBlock(Block *block);
 void loadBlockTextures(void);
 void drawBlock(SDL_Renderer *rend, Block *block);
 void updateBlock(Block *block);
+void freezeBlock(Block *block);
 
 #endif

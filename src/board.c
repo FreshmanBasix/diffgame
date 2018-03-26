@@ -69,7 +69,9 @@ void populateBoard(Board *brd, int lvl)
 	BlockColor color;
 	for (int i = 0; i < BOARD_ROWS; ++i) {
 		for (int j = 0; j < BOARD_COLUMNS; ++j) {
-			Block *tmpBlock = (Block*) malloc(sizeof(Block));
+			if (brd->blocks[i][j] != NULL)
+				continue;
+			Block *tmpBlock;
 
 			split = rand() % lvlBreak;		// level specific block colors
 			if (split < RED_SPLIT)
@@ -108,35 +110,49 @@ void drawBoard(SDL_Renderer **rend, Board *board) {
 	}
 }
 
-/* Recursively get all blocks depth-first that match color and return number of selected blocks */
-static int selectBlock(Board *board, int x, int y, BlockColor color)
+/* Recursively get all blocks depth-first that match color and return number of selected blocks,
+ * depending on selectOption results will either be marked in selection map or counting map */
+static int selectBlock(Board *board, int x, int y, BlockColor color, bool selectOption)
 {
 	int sum = 0;
 
-	/* Return if no block || wrong color || already marked || illegal coordinates */
+	/* Return if
+	 * no block || block frozen || wrong color ||
+	 * already marked || illegal coordinates */
+	if (selectOption) {
+		if (board->blockMap[y][x] == true)
+			return sum;
+	} else {
+		if (board->connectMap[y][x] == true)
+			return sum;
+	}
+
 	if (board->blocks[y][x] == NULL
+		|| board->blocks[y][x]->color == FROZEN
 		|| board->blocks[y][x]->color != color
-		|| board->blockMap[y][x]
 		|| x < 0
 		|| x >= BOARD_COLUMNS
 		|| y < 0
 		|| y >= BOARD_ROWS
 	) return sum;
 	else {
-		board->blockMap[y][x] = true;
+		if (selectOption)
+			board->blockMap[y][x] = true;
+		else
+			board->connectMap[y][x] = true;
 		sum++;
 	}
 
 	/* Search left, up, right, down */
 
 	if (x > 0) // check if at left border
-		sum += selectBlock(board, (x - 1), y, color);
+		sum += selectBlock(board, (x - 1), y, color, selectOption);
 	if (x < BOARD_COLUMNS - 1) // check if at right border
-		sum += selectBlock(board, (x + 1), y, color);
+		sum += selectBlock(board, (x + 1), y, color, selectOption);
 	if (y > 0) // check if at top border
-		sum += selectBlock(board, x, (y - 1), color);
+		sum += selectBlock(board, x, (y - 1), color, selectOption);
 	if (y < BOARD_ROWS - 1) // check if at bottom border
-		sum += selectBlock(board, x, (y + 1), color);
+		sum += selectBlock(board, x, (y + 1), color, selectOption);
 
 	return sum;
 }
@@ -145,12 +161,8 @@ static int selectBlock(Board *board, int x, int y, BlockColor color)
  * number of blocks are greater than one */
 void selectBlocks(Board *board, int x, int y)
 {
-	/* "clear" blockMap, set all blocks as false */
-	for (int i = 0; i < BOARD_ROWS; ++i) {
-		for (int j = 0; j < BOARD_COLUMNS; ++j) {
-			board->blockMap[i][j] = false;
-		}
-	}
+	/* "clear" blockMap */
+	deselectAllBlocks(board);
 
 	/* Get color to match blocks with */
 	Block *tmpBlock;
@@ -160,7 +172,7 @@ void selectBlocks(Board *board, int x, int y)
 	/* Only select if number of connected blocks are greater than or equal to two */
 	/* TODO since this means only one block is selected, try
 	 * deselecting the single block, instead of entire board */
-	if (selectBlock(board, x, y, tmpBlock->color) < 2)
+	if (selectBlock(board, x, y, tmpBlock->color, true) < 2)
 		deselectAllBlocks(board);
 }
 
@@ -261,7 +273,7 @@ void deselectAllBlocks(Board* board)
 	}
 }
 
-/* Update all blocks that are still updating, if no blocks are updated set board to !updating */
+/* Update all blocks on board */
 void updateBoard(Board *board)
 {
 	bool allDone = true;
@@ -275,6 +287,43 @@ void updateBoard(Board *board)
 			}
 		}
 	}
-
 	board->updating = !allDone;
+}
+
+static int numberOfConnectedBlocks(Board *board, int x, int y)
+{
+	/* Clear connectMap */
+	for (int y = 0; y < BOARD_ROWS; ++y) {
+		for (int x = 0; x < BOARD_COLUMNS; ++x) {
+			board->connectMap[y][x] = false;
+		}
+	}
+
+	if (board->blocks[y][x] == NULL)
+		return 0;
+	/* Call selectBlock with selectOption false */
+	int sum = selectBlock(board, x, y, board->blocks[y][x]->color, false);
+	return sum;
+}
+
+bool noMoreMoves(Board *board)
+{
+	for (int y = 0; y < BOARD_ROWS; ++y) {
+		for (int x = 0; x < BOARD_COLUMNS; ++x) {
+			if (numberOfConnectedBlocks(board, x, y) > 1)
+				return false;
+		}
+	}
+
+	return true;
+}
+
+void freezeBlocks(Board *board)
+{
+	for (int y = 0; y < BOARD_ROWS; ++y) {
+		for (int x = 0; x < BOARD_COLUMNS; ++x) {
+			if (board->blocks[y][x] != NULL)
+				freezeBlock(board->blocks[y][x]);
+		}
+	}
 }

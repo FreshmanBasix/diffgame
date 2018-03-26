@@ -31,8 +31,16 @@ void destroyBlock(Block *block)
 }
 
 void loadBlockTextures(void) {
-	gBlockTextures.plainBlock = loadTexture(gGame.mainRenderer, "./art_assets/block/plainblock.png");
+	gBlockTextures.plainBlock =
+		loadTexture(gGame.mainRenderer, "./art_assets/block/plainblock.png");
 	if (gBlockTextures.plainBlock == NULL) {
+		fprintf(stderr, "Failed to load plainblock texture\n");
+		/* Fallback texture here */
+	}
+
+	gBlockTextures.frozenBlock =
+		loadTexture(gGame.mainRenderer, "./art_assets/block/deathblock.png");
+	if (gBlockTextures.frozenBlock == NULL) {
 		fprintf(stderr, "Failed to load plainblock texture\n");
 		/* Fallback texture here */
 	}
@@ -74,6 +82,11 @@ void drawBlock(SDL_Renderer *rend, Block *block) {
 			color_g = ORANGE_G;
 			color_b = ORANGE_B;
 			break;
+		case FROZEN:
+			color_r = FROZEN_R;
+			color_g = FROZEN_G;
+			color_b = FROZEN_B;
+			break;
 		default:
 			/* Set default to WHITE */
 			color_r = 255;
@@ -100,4 +113,10 @@ void updateBlock(Block *block)
 	} else {
 		block->block.y += block->velocity;
 	}
+}
+
+void freezeBlock(Block *block)
+{
+	block->texture = gBlockTextures.frozenBlock;
+	block->color = FROZEN;
 }

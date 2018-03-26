@@ -51,8 +51,9 @@ int main(void)
 						break;
 					mouse_x = event.motion.x;
 					mouse_y = event.motion.y;
-					if (!positionWithinBoard(mouse_x, mouse_y))
+					if (!positionWithinBoard(mouse_x, mouse_y)) {
 						deselectAllBlocks(gGame.state.currentBoard);
+					}
 					if (blockAtPos(gGame.state.currentBoard, mouse_x, mouse_y)) {
 						selectBlocks(gGame.state.currentBoard,
 								mouse_x / BLOCK_SIZE_WIDTH,		// conversion should probably be done somewhere else
@@ -79,6 +80,7 @@ int main(void)
 			updateBoard(gGame.state.currentBoard);
 		drawBoard(&gGame.mainRenderer, gGame.state.currentBoard);
 		SDL_RenderPresent(gGame.mainRenderer);
+		updateGameStatus(&gGame);
 	}
 
 	quit(&gGame);

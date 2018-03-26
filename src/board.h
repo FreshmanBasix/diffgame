@@ -11,6 +11,8 @@
 #define BOARD_ROWS		15
 #define BOARD_COLUMNS	15
 
+#define BOARD_MAX_LEVEL 3
+
 #define RED_SPLIT 		RAND_MAX/5
 #define GREEN_SPLIT		(RAND_MAX/5)*2
 #define BLUE_SPLIT		(RAND_MAX/5)*3
@@ -20,8 +22,10 @@
 typedef struct _Board {
 	SDL_Rect *board;
 	int seed;
+	int currentLevel;
 	Block *blocks[BOARD_ROWS][BOARD_COLUMNS];
 	bool blockMap[BOARD_ROWS][BOARD_COLUMNS];
+	bool connectMap[BOARD_ROWS][BOARD_COLUMNS];
 	bool updating;
 	int num_updating_blocks;
 	int num_selected;
@@ -65,5 +69,11 @@ void updateBoard(Board *board);
 /* Update all blocks that are still updating, if no blocks are updated
  * then set board to no longer updating */
 void updateBoard(Board *board);
+
+/* Checks if there are no more moves to be made on board */
+bool noMoreMoves(Board *board);
+
+/* Freezes all blocks on board */
+void freezeBlocks(Board *board);
 
 #endif
