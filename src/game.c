@@ -10,7 +10,7 @@ void initGame(struct _Game *game)
 {
 	loadBlockTextures();
 	game->state.currentBoard = createBoard();
-	populateBoard(game->state.currentBoard, 1);
+	populateBoard(game->state.currentBoard);
 	game->state.quit = false;
 }
 
@@ -45,7 +45,7 @@ static void nextLevel(struct _Game *game)
 	else
 		currentBoard->currentLevel++;
 
-	populateBoard(currentBoard, currentBoard->currentLevel);
+	populateBoard(currentBoard);
 }
 
 void updateGameStatus(struct _Game *game)

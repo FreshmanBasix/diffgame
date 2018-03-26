@@ -19,32 +19,42 @@ Board* createBoard(void)
 	 * based on unix time in seconds */
 	srand(time(NULL));
 	newBoard->seed = rand();
+	srand(newBoard->seed);
 
 	newBoard->updating = false;
 
 	return newBoard;
 }
 
-void destroyBoard(Board *brd)
+void destroyBoard(Board *board)
 {
 	/* Free all blocks */
 	for (int i = 0; i < BOARD_ROWS; ++i) {
 		for (int j = 0; j < BOARD_COLUMNS; ++j) {
-			free(brd->blocks[i][j]);
+			free(board->blocks[i][j]);
 		}
 	}
 	/* Free blocks array (not sure if needed) */
-	free(brd->blocks);
+	free(board->blocks);
 	/* Free board */
-	free(brd);
+	free(board);
 }
 
 /* Fill the block array in board with random blocks based on level */
-void populateBoard(Board *brd, int lvl)
+void populateBoard(Board *board)
 {
-	int lvlBreak;
+	int lvl, lvlBreak;
 
-	srand(brd->seed); // get random seed from board
+	board->updating = true;
+
+	bool allPopulated = true;
+
+	if (board->currentLevel < BOARD_MIN_LEVEL)
+		board->currentLevel = BOARD_MIN_LEVEL;
+	else if (board->currentLevel > BOARD_MAX_LEVEL)
+		board->currentLevel = BOARD_MAX_LEVEL;
+
+	lvl = board->currentLevel;
 
 	/* lvlBreak should indicate what blocks are going to be included in the
 	 * current level, by capping rand-values to certain color caps */
@@ -67,31 +77,40 @@ void populateBoard(Board *brd, int lvl)
 	int blockx, blocky;
 	int split;
 	BlockColor color;
-	for (int i = 0; i < BOARD_ROWS; ++i) {
-		for (int j = 0; j < BOARD_COLUMNS; ++j) {
-			if (brd->blocks[i][j] != NULL)
-				continue;
-			Block *tmpBlock;
+	/* Creates a new row of blocks, skips columns that are full */
+	for (int j = 0; j < BOARD_COLUMNS; ++j) {
+		if (board->blocks[0][j] != NULL)
+			continue;
+		else
+			allPopulated = false;
 
-			split = rand() % lvlBreak;		// level specific block colors
-			if (split < RED_SPLIT)
-				color = RED;
-			else if (split < GREEN_SPLIT)
-				color = GREEN;
-			else if (split < BLUE_SPLIT)
-				color = BLUE;
-			else if (split < YELLOW_SPLIT)
-				color = YELLOW;
-			else if (split < ORANGE_SPLIT)
-				color = ORANGE;
-			else
-				color = WHITE; // error color
+		Block *tmpBlock;
+		split = rand() % lvlBreak;		// level specific block colors
+		if (split < RED_SPLIT)
+			color = RED;
+		else if (split < GREEN_SPLIT)
+			color = GREEN;
+		else if (split < BLUE_SPLIT)
+			color = BLUE;
+		else if (split < YELLOW_SPLIT)
+			color = YELLOW;
+		else if (split < ORANGE_SPLIT)
+			color = ORANGE;
+		else
+			color = WHITE; // error color
 
-			blockx = j * BLOCK_SIZE_WIDTH;
-			blocky = i * BLOCK_SIZE_HEIGHT;
-			tmpBlock = createBlock(blockx, blocky, color, gBlockTextures.plainBlock);
-			brd->blocks[i][j] = tmpBlock;
-		}
+		blockx = j * BLOCK_SIZE_WIDTH;
+		blocky = 0 * BLOCK_SIZE_HEIGHT;
+		tmpBlock = createBlock(blockx, blocky, color, gBlockTextures.plainBlock);
+		tmpBlock->updating = true;
+		board->blocks[0][j] = tmpBlock;
+	}
+
+	if (allPopulated) {
+		board->populating = false;
+	} else {
+		board->populating = true;
+		sinkBlocks(board);
 	}
 }
 
@@ -218,7 +237,7 @@ static void sinkBlock(Board *board, int x, int y)
 	}
 }
 
-static void sinkBlocks(Board *board)
+void sinkBlocks(Board *board)
 {
 	/* Go through blocks from bottom up */
 	for (int y = BOARD_ROWS - 1; y >= 0; --y) {
@@ -276,8 +295,19 @@ void deselectAllBlocks(Board* board)
 /* Update all blocks on board */
 void updateBoard(Board *board)
 {
+	static int populateDelay = 0;
+
 	bool allDone = true;
+
 	Block *currentBlock = NULL;
+
+	if (board->populating) {
+		allDone = false;
+		populateDelay++;
+		if (populateDelay % POPULATION_DELAY == 0)
+			populateBoard(board);
+	}
+
 	for (int y = 0; y < BOARD_ROWS; ++y) {
 		for (int x = 0; x < BOARD_COLUMNS; ++x) {
 			currentBlock = board->blocks[x][y];
@@ -287,6 +317,7 @@ void updateBoard(Board *board)
 			}
 		}
 	}
+
 	board->updating = !allDone;
 }
 

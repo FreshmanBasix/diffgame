@@ -11,7 +11,10 @@
 #define BOARD_ROWS		15
 #define BOARD_COLUMNS	15
 
+#define BOARD_MIN_LEVEL 1
 #define BOARD_MAX_LEVEL 3
+
+#define POPULATION_DELAY 8
 
 #define RED_SPLIT 		RAND_MAX/5
 #define GREEN_SPLIT		(RAND_MAX/5)*2
@@ -23,10 +26,13 @@ typedef struct _Board {
 	SDL_Rect *board;
 	int seed;
 	int currentLevel;
+
 	Block *blocks[BOARD_ROWS][BOARD_COLUMNS];
 	bool blockMap[BOARD_ROWS][BOARD_COLUMNS];
 	bool connectMap[BOARD_ROWS][BOARD_COLUMNS];
+
 	bool updating;
+	bool populating;
 	int num_updating_blocks;
 	int num_selected;
 } Board;
@@ -35,10 +41,10 @@ typedef struct _Board {
 Board* createBoard(void);
 
 /* Frees all memory allocated in Board struct brd */
-void destroyBoard(Board *brd);
+void destroyBoard(Board *board);
 
 /* Populates board brd with blocks based on level lvl */
-void populateBoard(Board *brd, int lvl);
+void populateBoard(Board *board);
 
 /* Draws board brd to renderer rend */
 void drawBoard(SDL_Renderer **rend, Board *brd);
@@ -63,8 +69,8 @@ void destroyBlocks(Board *board);
 /* Deselects all blocks, returning them to normal state */
 void deselectAllBlocks(Board *board);
 
-/* Update positions and other things that move etc */
-void updateBoard(Board *board);
+/* Sinks all blocks to correct position on board */
+void sinkBlocks(Board *board);
 
 /* Update all blocks that are still updating, if no blocks are updated
  * then set board to no longer updating */
